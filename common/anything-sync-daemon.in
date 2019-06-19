@@ -13,6 +13,7 @@ NRM="\e[00m"
 VERS="@VERSION@"
 
 ASDCONF=${ASDCONF:-"/etc/asd.conf"}
+ASDEXCONF=${ASDEXCONF:-"/etc/asd-exclude.conf"}
 DAEMON_FILE=${DAEMON_FILE:-"/run/asd"}
 
 # Setup check /etc/asd.conf
@@ -355,9 +356,9 @@ do_sync() {
       # sync the tmpfs targets to the disc
       if [[ -e "$TMP"/.flagged ]]; then
         if [[ $OLFS -eq 1 ]]; then
-          rsync -aogX --delete-after --inplace --no-whole-file --exclude .flagged "$DIR/" "$BACK_OVFS/"
+          rsync -aogX --delete-after --inplace --no-whole-file --exclude .flagged --exclude-from=$ASDEXCONF "$DIR/" "$BACK_OVFS/"
         else
-          rsync -aogX --delete-after --inplace --no-whole-file --exclude .flagged "$DIR/" "$BACKUP/"
+          rsync -aogX --delete-after --inplace --no-whole-file --exclude .flagged --exclude-from=$ASDEXCONF "$DIR/" "$BACKUP/"
         fi
       else
         # initial sync
@@ -368,7 +369,7 @@ do_sync() {
             mount -t overlayfs overlaid -olowerdir="$BACKUP",upperdir="$UPPER" "$TMP"
           fi
         else
-          rsync -aogX --inplace --no-whole-file "$BACKUP/" "$TMP/"
+          rsync -aogX --inplace --no-whole-file --exclude-from=$ASDEXCONF "$BACKUP/" "$TMP/"
         fi
         touch "$DIR"/.flagged
       fi
